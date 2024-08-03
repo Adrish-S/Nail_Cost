@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nail Cost Calculator</title>
+</head>
+<body>
+    <h1>Nail Cost Calculator</h1>
+    <form method="POST">
+        <label for="rm_cost">RM Cost per kg:</label>
+        <input type="number" step="0.01" name="rm_cost" value="{{ user_selections['RM Cost per kg'] }}"><br>
+    <br>
+        <label for="nail_type">Nail Type:</label>
+        <select name="nail_type" id="nail_type_select" onchange="updateNailOptions()">
+            {% for option in nail_options.keys() %}
+                <option value="{{ option }}" {% if user_selections['Nail Type'] == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+        </select><br>
+    <br>
+        <label for="nail_size">Nail Size:</label>
+        <select name="nail_size" id="nail_size_select">
+            <!-- Options will be updated dynamically -->
+        </select><br>
+    <br>
+        <label for="nail_quantity">Nail Quantity:</label>
+        <select name="nail_quantity" id="nail_quantity_select">
+            {% if user_selections['Nail Type'] and user_selections['Nail Type'] in nail_options %}
+                {% for option in nail_options[user_selections['Nail Type']]['Quantity'] %}
+                    <option value="{{ option }}" {% if user_selections['Nail Quantity'] == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            {% endif %}
+        </select><br>
+    <br>
+
+        <label for="nail_shank">Nail Shank:</label>
+        <select name="nail_shank" id="nail_shank_select">
+            <!-- Options will be updated dynamically -->
+        </select><br>
+    <br>
+        <label for="nail_finish">Nail Finish:</label>
+        <select name="nail_finish" id="nail_finish_select">
+            <!-- Options will be updated dynamically -->
+        </select><br>
+    <br>
+        <label for="margin">Margin Percentage</label>
+        <input type="text" name="margin" placeholder="8"><br>
+    <br>
+        <label for="usd_rate">USD Conversion Rate</label>
+        <input type="number" step="0.01" name="rate"><br>
+    <br>
+        <input type="submit" value="Calculate Cost">
+    </form>
+
+    {% if user_selections['Final Cost'] %}
+        <h2>Final Cost: {{ user_selections['Final Cost'] }}</h2>
+        <ul>
+            <li>RM Cost per kg: {{ user_selections['RM Cost per kg'] }}</li>
+            <li>Nail Type: {{ user_selections['Nail Type'] }}</li>
+            <li>Nail Size: {{ user_selections['Nail Size'] }}</li>
+            <li>Nail Quantity: {{ user_selections['Nail Quantity'] }}</li>
+            <li>Nail Shank: {{ user_selections['Nail Shank'] }}</li>
+            <li>Nail Finish: {{ user_selections['Nail Finish'] }}</li>
+            <li>Margin Percentage: {{ user_selections['Margin Percentage'] }}%</li>
+            <li>USD Rate: {{ user_selections['USD Rate'] }}</li>
+        </ul>
+    {% endif %}
+
+    <script>
+        var nailOptions = {
+            "21 Degree Plastic Collated": {
+                "Sizes": ["2 x.113", "2-1/2 x.113", "2-3/8 x.113", "3 x.113", "2-1/2 x.120", "3 x.120", "3-1/4 x.120", "2-1/2 x.131", "3 x.131", "3-1/4 x.131", "3-1/2 x.131"],
+                "Quantity": ["1M", "3M", "4M", "5M"],
+                "Shank Types": ["Smooth Shank", "Ring Shank"],
+                "Finishes": ["Bright Finish", "HDG Finish"],
+            },
+            "15 Degree Coil Nail": {
+                "Sizes": ["1-1/2 x.083", "1-3/4 x.083", "1-3/4 x.086","1-3/4 x.092", "2 x.092", "2-3/16 x.092", "2-1/2 x.092", "2 x.099", "2-3/16 x.099", "2-1/2 x.099", "2-3/8 x.113", "3 x.120", "3-1/4 x.120"],
+                "Quantity": ["2.5M", "3M", "4M", "5M", "7.5M", "9M", "14M"],
+                "Shank Types": ["Smooth Shank", "Ring Shank", "Screw Shank"],
+                "Finishes": ["Bright Finish", "EG Finish", "HDG Finish"],
+            }
+        };
+
+        // Function to update Nail Size, Shank, and Finish dropdowns based on Nail Type
+        function updateNailOptions() {
+            var nailTypeSelect = document.getElementById("nail_type_select");
+            var nailSizeSelect = document.getElementById("nail_size_select");
+            var nailShankSelect = document.getElementById("nail_shank_select");
+            var nailFinishSelect = document.getElementById("nail_finish_select");
+            var nailQuantitySelect = document.getElementById("nail_quantity_select");
+
+            // Get the selected Nail Type
+            var selectedNailType = nailTypeSelect.options[nailTypeSelect.selectedIndex].value;
+
+            // Get the Nail Sizes for the selected Nail Type
+            var nailSizes = nailOptions[selectedNailType]["Sizes"];
+
+            // Get the Nail Quantity for the selected Nail type
+            var nailQuantity = nailOptions[selectedNailType]["Quantity"];
+
+            // Get the Nail Shanks for the selected Nail Type
+            var nailShanks = nailOptions[selectedNailType]["Shank Types"];
+
+            // Get the Nail Finishes for the selected Nail Type
+            var nailFinishes = nailOptions[selectedNailType]["Finishes"];
+
+            // Clear existing options and add new options based on Nail Sizes, Shanks, and Finishes
+            clearAndPopulateOptions(nailSizeSelect, nailSizes);
+            clearAndPopulateOptions(nailQuantitySelect, nailQuantity)
+            clearAndPopulateOptions(nailShankSelect, nailShanks);
+            clearAndPopulateOptions(nailFinishSelect, nailFinishes);
+
+            // Get the selected Nail Quantity
+            var selectedNailQuantity = nailQuantitySelect.options[nailQuantitySelect.selectedIndex].value;
+            user_selections['Nail Quantity'] = selectedNailQuantity;
+        }
+
+        // Helper function to clear existing options and add new options to a select element
+        function clearAndPopulateOptions(selectElement, options) {
+            selectElement.innerHTML = '';
+            for (var i = 0; i < options.length; i++) {
+                var option = document.createElement("option");
+                option.text = options[i];
+                selectElement.add(option);
+            }
+        }
+
+        // Call the initial update when the page loads
+        updateNailOptions();
+    </script>
+</body>
+</html>
